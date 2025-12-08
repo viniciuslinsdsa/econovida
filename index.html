@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Econovida - Economia Interativa</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- MathJax -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        
+        /* Slider Styling */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 20px; width: 20px;
+            height: 20px; width: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid currentColor;
+            cursor: pointer;
+            margin-top: -8px; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            transition: transform 0.1s ease;
+        }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px;
+            cursor: pointer;
+            background: #e2e8f0;
+            border-radius: 2px;
+        }
+
+        /* Specific Colors for Sliders (using currentColor logic via classes) */
+        #viol-slider, #viol-income-slider { color: #dc2626; }
+        #edu-s-slider, #edu-rho-slider { color: #16a34a; }
+        #env-tax-slider { color: #10b981; }
+        #env-damage-slider { color: #ef4444; }
+        #health-inv-slider, #health-age-slider, #health-wage-slider { color: #06b6d4; }
+        #cult-prod-slider, #cult-elast-slider { color: #8b5cf6; }
+        #ai-auto-slider { color: #f59e0b; }
+        #ai-prod-slider { color: #10b981; }
+
+        mjx-container { overflow-x: auto; overflow-y: hidden; }
+        
+        /* Page Animation */
+        .page-section { display: none; opacity: 0; transition: opacity 0.4s ease-in-out; }
+        .page-section.active { display: block; opacity: 1; }
+        
+        .nav-btn { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; transition: all 0.2s; cursor: pointer; color: #64748b; border: 1px solid transparent; text-align: left; font-weight: 500; }
+        .nav-btn:hover { background-color: #f1f5f9; color: #0f172a; }
+        .nav-btn.active { background-color: #eff6ff; color: #1e40af; font-weight: 700; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); border: 1px solid #dbeafe; }
+
+        /* Mobile Menu Transition */
+        #mobile-menu { transition: transform 0.3s ease-in-out; }
+        .menu-open { transform: translateX(0) !important; }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row h-screen overflow-hidden text-slate-800 bg-slate-50">
+
+    <!-- MOBILE HEADER -->
+    <header class="md:hidden bg-white border-b border-slate-200 p-4 flex justify-between items-center z-50 shadow-sm">
+        <h1 class="text-xl font-bold text-blue-700 flex items-center gap-2">
+            <span>📊</span> Econovida
+        </h1>
+        <button onclick="toggleMobileMenu()" class="text-slate-500 hover:text-blue-600 focus:outline-none">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+    </header>
+
+    <!-- SIDEBAR (Desktop & Mobile) -->
+    <aside id="mobile-menu" class="fixed inset-y-0 left-0 w-72 bg-white border-r border-slate-200 z-40 transform -translate-x-full md:translate-x-0 md:static flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+        <div class="p-8 border-b border-slate-100 hidden md:block">
+            <h1 class="text-2xl font-extrabold text-blue-700 tracking-tight flex items-center gap-2">
+                <span>📊</span> Econovida
+            </h1>
+            <p class="text-xs text-slate-400 mt-2 font-medium uppercase tracking-wider">Laboratório de Economia</p>
+        </div>
+        
+        <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+            <button id="btn-home" class="nav-btn active" onclick="router('home')">
+                <span>🏠</span> <span class="text-sm">Início</span>
+            </button>
+            
+            <div class="px-4 pt-6 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Simuladores
+            </div>
+
+            <button id="btn-violence" class="nav-btn" onclick="router('violence')">
+                <span>🛡️</span> <span class="text-sm">Economia do Crime</span>
+            </button>
+            
+            <button id="btn-education" class="nav-btn" onclick="router('education')">
+                <span>🎓</span> <span class="text-sm">Retorno da Educação</span>
+            </button>
+
+            <button id="btn-environment" class="nav-btn" onclick="router('environment')">
+                <span>🌿</span> <span class="text-sm">Meio Ambiente</span>
+            </button>
+
+            <button id="btn-health" class="nav-btn" onclick="router('health')">
+                <span>🩺</span> <span class="text-sm">Economia da Saúde</span>
+            </button>
+
+            <button id="btn-culture" class="nav-btn" onclick="router('culture')">
+                <span>🎭</span> <span class="text-sm">Economia da Cultura</span>
+            </button>
+
+            <button id="btn-ai" class="nav-btn" onclick="router('ai')">
+                <span>🤖</span> <span class="text-sm">Economia da IA</span>
+            </button>
+        </nav>
+        
+        <!-- Contexto Dinâmico (Card Flutuante na Sidebar) -->
+        <div class="p-4 bg-slate-50 border-t border-slate-200">
+            <div id="sidebar-context" class="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                <!-- Injetado via JS -->
+            </div>
+        </div>
+    </aside>
+
+    <!-- OVERLAY (Mobile only) -->
+    <div id="menu-overlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-black/20 z-30 hidden md:hidden backdrop-blur-sm"></div>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 overflow-y-auto p-4 md:p-10 relative scroll-smooth">
+        
+        <!-- PÁGINA: INÍCIO -->
+        <section id="page-home" class="page-section active max-w-7xl mx-auto pt-4 md:pt-10">
+            <div class="text-center mb-16 px-4">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 mb-6 text-3xl shadow-sm ring-4 ring-white">🚀</div>
+                <h2 class="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">Economia na Prática</h2>
+                <p class="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                    Ferramentas interativas para visualizar como a teoria econômica afeta decisões reais, do salário à saúde.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Cards com Design Clean -->
+                <div onclick="router('violence')" class="bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer border border-slate-100 group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <span class="text-8xl">🛡️</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">Crime & Risco</h3>
+                    <p class="text-sm text-slate-500 mb-6 leading-relaxed">Como a incerteza afeta a poupança e o horizonte de planejamento.</p>
+                    <span class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-wide">Simular &rarr;</span>
+                </div>
+
+                <div onclick="router('education')" class="bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer border border-slate-100 group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <span class="text-8xl">🎓</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-green-600 transition-colors">Capital Humano</h3>
+                    <p class="text-sm text-slate-500 mb-6 leading-relaxed">O valor matemático de um diploma e da experiência no mercado.</p>
+                    <span class="text-xs font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-wide">Simular &rarr;</span>
+                </div>
+
+                <div onclick="router('environment')" class="bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer border border-slate-100 group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <span class="text-8xl">🌿</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-emerald-600 transition-colors">Sustentabilidade</h3>
+                    <p class="text-sm text-slate-500 mb-6 leading-relaxed">Internalizando externalidades e o custo social do carbono.</p>
+                    <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-wide">Simular &rarr;</span>
+                </div>
+
+                <div onclick="router('health')" class="bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer border border-slate-100 group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <span class="text-8xl">🩺</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-cyan-600 transition-colors">Investimento Saúde</h3>
+                    <p class="text-sm text-slate-500 mb-6 leading-relaxed">Saúde como estoque de capital que deprecia com a idade.</p>
+                    <span class="text-xs font-bold text-cyan-600 bg-cyan-50 px-3 py-1 rounded-full uppercase tracking-wide">Simular &rarr;</span>
+                </div>
+
+                <div onclick="router('culture')" class="bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer border border-slate-100 group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <span class="text-8xl">🎭</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-violet-600 transition-colors">Doença de Custos</h3>
+                    <p class="text-sm text-slate-500 mb-6 leading-relaxed">Por que serviços manuais ficam cada vez mais caros.</p>
+                    <span class="text-xs font-bold text-violet-600 bg-violet-50 px-3 py-1 rounded-full uppercase tracking-wide">Simular &rarr;</span>
+                </div>
+
+                <div onclick="router('ai')" class="bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer border border-slate-100 group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <span class="text-8xl">🤖</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-amber-600 transition-colors">Impacto da IA</h3>
+                    <p class="text-sm text-slate-500 mb-6 leading-relaxed">Substituição vs. Produtividade no mercado de trabalho.</p>
+                    <span class="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full uppercase tracking-wide">Simular &rarr;</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- TEMPLATE UNIFICADO PARA AS PÁGINAS -->
+
+        <!-- PÁGINA: VIOLÊNCIA -->
+        <section id="page-violence" class="page-section max-w-6xl mx-auto">
+            <header class="mb-10">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">Macroeconomia</span>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">O Custo Oculto da Violência</h2>
+                <p class="text-slate-600 max-w-3xl text-lg leading-relaxed">
+                    A violência funciona como um imposto sobre o futuro. Ela reduz o horizonte de planejamento das pessoas: se o futuro é incerto, a decisão racional é consumir hoje em vez de poupar ou investir.
+                </p>
+            </header>
+
+            <!-- Card da Teoria (Equação em destaque) -->
+            <div class="mb-8 bg-gradient-to-r from-blue-50 to-white border border-blue-100 rounded-2xl p-8 shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10 text-9xl text-blue-200 font-serif">∫</div>
+                <div class="relative z-10 grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h3 class="font-bold text-slate-800 mb-3 text-lg">Modelo de Rosen (1988)</h3>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
+                            $$ U(a) = \sum \beta^{t} \cdot \color{red}{S(t)} \color{black} \cdot u(c_t) $$
+                        </div>
+                    </div>
+                    <div class="text-sm text-slate-600 space-y-2">
+                        <ul class="list-disc pl-4 space-y-2 marker:text-red-400">
+                            <li><b class="font-mono text-slate-900">U(a)</b>: Sua utilidade total ao longo da vida.</li>
+                            <li><b class="font-mono text-red-600">S(t)</b>: Chance de sobreviver até o ano <i>t</i>. Se a violência sobe, isso cai.</li>
+                            <li><b class="font-mono text-slate-900">u(c)</b>: Felicidade gerada pelo consumo.</li>
+                            <li><b class="font-mono text-slate-900">&beta;</b>: Impaciência (preferência pelo presente).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulador -->
+            <div class="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-12">
+                    <!-- Controles -->
+                    <div class="lg:col-span-4 p-8 bg-slate-50/50 border-r border-slate-100 space-y-8">
+                        <div>
+                            <label class="flex justify-between items-center mb-3">
+                                <span class="text-sm font-bold text-slate-700">Percepção de Risco (v)</span>
+                                <span id="viol-val" class="text-sm font-bold text-red-600 bg-red-50 px-2 py-1 rounded">Médio</span>
+                            </label>
+                            <input type="range" min="0" max="100" value="50" id="viol-slider" class="w-full">
+                        </div>
+                        <div>
+                            <label class="flex justify-between items-center mb-3">
+                                <span class="text-sm font-bold text-slate-700">Renda Mensal (y)</span>
+                                <span id="viol-income-val" class="text-sm font-bold text-slate-600">R$ 3.000</span>
+                            </label>
+                            <input type="range" min="1500" max="10000" step="100" value="3000" id="viol-income-slider" class="w-full">
+                        </div>
+                        
+                        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Impacto Econômico</h4>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm text-slate-600">Poupança:</span>
+                                <span id="viol-savings" class="font-bold text-slate-900">--</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-slate-600">Perda PIB:</span>
+                                <span id="viol-welfare" class="font-bold text-red-600">--</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Gráfico -->
+                    <div class="lg:col-span-8 p-8 bg-white">
+                        <div class="h-80 relative">
+                            <canvas id="violenceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PÁGINA: EDUCAÇÃO -->
+        <section id="page-education" class="page-section max-w-6xl mx-auto">
+            <header class="mb-10">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">Trabalho</span>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Retornos da Educação</h2>
+                <p class="text-slate-600 max-w-3xl text-lg leading-relaxed">
+                    A Equação de Mincer decompõe seu salário em duas partes: a base construída pela <b>escolaridade</b> e o crescimento gerado pela <b>experiência</b> (que eventualmente estagna).
+                </p>
+            </header>
+
+            <div class="mb-8 bg-gradient-to-r from-green-50 to-white border border-green-100 rounded-2xl p-8 shadow-sm relative overflow-hidden">
+                <div class="relative z-10 grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h3 class="font-bold text-slate-800 mb-3 text-lg">Equação de Mincer (1974)</h3>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
+                            $$ \ln(w) = \ln(w_0) + \color{green}{\rho S} + \color{blue}{\beta_1 X} - \beta_2 X^2 $$
+                        </div>
+                    </div>
+                    <div class="text-sm text-slate-600 space-y-2">
+                        <ul class="list-disc pl-4 space-y-2 marker:text-green-500">
+                            <li><b class="font-mono text-slate-900">w</b>: Seu salário final.</li>
+                            <li><b class="font-mono text-green-600">&rho; (rho)</b>: Taxa de retorno. Quanto seu salário sobe (%) por ano de estudo.</li>
+                            <li><b class="font-mono text-green-600">S</b>: Anos de estudo (Escolaridade).</li>
+                            <li><b class="font-mono text-blue-600">X</b>: Anos de experiência no trabalho.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-12">
+                    <div class="lg:col-span-4 p-8 bg-slate-50/50 border-r border-slate-100 space-y-8">
+                        <div>
+                            <label class="flex justify-between items-center mb-3">
+                                <span class="text-sm font-bold text-slate-700">Anos de Estudo (S)</span>
+                                <span id="edu-s-val" class="text-sm font-bold text-green-600 bg-green-50 px-2 py-1 rounded">12 anos</span>
+                            </label>
+                            <input type="range" min="0" max="25" value="12" id="edu-s-slider" class="w-full">
+                        </div>
+                        <div>
+                            <label class="flex justify-between items-center mb-3">
+                                <span class="text-sm font-bold text-slate-700">Taxa de Retorno (&rho;)</span>
+                                <span id="edu-rho-val" class="text-sm font-bold text-slate-600">10%</span>
+                            </label>
+                            <input type="range" min="1" max="20" value="10" id="edu-rho-slider" class="w-full">
+                        </div>
+                        
+                        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm text-center">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Salário de Pico (50 anos)</span>
+                            <div id="edu-peak-salary" class="text-3xl font-extrabold text-green-600 mt-2">--</div>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-8 p-8 bg-white">
+                        <div class="h-80 relative">
+                            <canvas id="educationChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PÁGINA: MEIO AMBIENTE -->
+        <section id="page-environment" class="page-section max-w-6xl mx-auto">
+            <header class="mb-10">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">Microeconomia</span>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Falha de Mercado: Poluição</h2>
+                <p class="text-slate-600 max-w-3xl text-lg leading-relaxed">
+                    A fábrica considera apenas seu custo privado. A sociedade paga o custo privado + o dano ambiental. O <b>Imposto de Pigou</b> corrige isso igualando os custos.
+                </p>
+            </header>
+
+            <div class="mb-8 bg-gradient-to-r from-emerald-50 to-white border border-emerald-100 rounded-2xl p-8 shadow-sm relative overflow-hidden">
+                <div class="relative z-10 grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h3 class="font-bold text-slate-800 mb-3 text-lg">Condição de Eficiência</h3>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
+                            $$ P = Custo_{priv} + \color{emerald}{Taxa} = \color{red}{Custo_{social}} $$
+                        </div>
+                    </div>
+                    <div class="text-sm text-slate-600 space-y-2">
+                        <ul class="list-disc pl-4 space-y-2 marker:text-emerald-500">
+                            <li><b class="font-mono text-slate-900">P</b>: Preço do produto.</li>
+                            <li><b class="font-mono text-gray-500">Custo_priv</b>: Custo da fábrica (máquinas, luz).</li>
+                            <li><b class="font-mono text-red-600">Custo_social</b>: Custo fábrica + Dano ambiental.</li>
+                            <li><b class="font-mono text-emerald-600">Taxa</b>: Imposto para corrigir o dano.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-12">
+                    <div class="lg:col-span-4 p-8 bg-slate-50/50 border-r border-slate-100 space-y-8">
+                        <div>
+                            <label class="flex justify-between items-center mb-3">
+                                <span class="text-sm font-bold text-slate-700">Dano Ambiental (Social)</span>
+                                <span id="env-damage-val" class="text-sm font-bold text-red-600 bg-red-50 px-2 py-1 rounded">R$ 50</span>
+                            </label>
+                            <input type="range" min="10" max="100" value="50" step="10" id="env-damage-slider" class="w-full">
+                        </div>
+                        <div>
+                            <label class="flex justify-between items-center mb-3">
+                                <span class="text-sm font-bold text-slate-700">Imposto Cobrado (Taxa)</span>
+                                <span id="env-tax-val" class="text-sm font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">R$ 0</span>
+                            </label>
+                            <input type="range" min="0" max="100" value="0" id="env-tax-slider" class="w-full">
+                        </div>
+                        
+                        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Diagnóstico</h4>
+                            <div id="env-status" class="text-lg font-bold text-slate-800">--</div>
+                            <p id="env-status-desc" class="text-xs text-slate-500 mt-1">--</p>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-8 p-8 bg-white">
+                        <div class="h-80 relative">
+                            <canvas id="envChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PÁGINA: SAÚDE (GROSSMAN) -->
+        <section id="page-health" class="page-section max-w-6xl mx-auto">
+            <header class="mb-10">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-cyan-100 text-cyan-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">Microeconomia</span>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Saúde como Investimento</h2>
+                <p class="text-slate-600 max-w-3xl text-lg leading-relaxed">
+                    Você investe em saúde (exercícios, médicos) até que o benefício marginal (dias saudáveis para trabalhar) empate com o custo marginal (que sobe com a idade devido à depreciação biológica).
+                </p>
+            </header>
+
+            <div class="mb-8 bg-gradient-to-r from-cyan-50 to-white border border-cyan-100 rounded-2xl p-8 shadow-sm relative overflow-hidden">
+                <div class="relative z-10 grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h3 class="font-bold text-slate-800 mb-3 text-lg">Modelo de Grossman (1972)</h3>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
+                            $$ \color{#0891b2}{MEC} = \frac{W \cdot MP_h}{C} = r + \color{red}{\delta} $$
+                        </div>
+                    </div>
+                    <div class="text-sm text-slate-600 space-y-2">
+                        <ul class="list-disc pl-4 space-y-2 marker:text-cyan-500">
+                            <li><b class="font-mono text-cyan-600">MEC</b>: Retorno marginal do investimento em saúde.</li>
+                            <li><b class="font-mono text-slate-900">W</b>: Salário. Quanto maior, mais vale a pena ser saudável.</li>
+                            <li><b class="font-mono text-slate-900">MP_h</b>: Dias saudáveis ganhos com o investimento.</li>
+                            <li><b class="font-mono text-slate-900">C</b>: Custo direto (remédios, médicos).</li>
+                            <li><b class="font-mono text-red-600">&delta;</b>: Depreciação. O "custo biológico" de envelhecer.</li>
+                            <li><b class="font-mono text-gray-500">r</b>: Taxa de juros (custo de oportunidade do capital).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-12">
+                    <div class="lg:col-span-4 p-8 bg-slate-50/50 border-r border-slate-100 space-y-8">
+                        <div>
+                            <label class="flex justify-between items-center mb-3">
+                                <span class="text-sm font-bold text-slate-700">Seu Salário (W)</span>
+                                <span id="health-wage-val" class="text-sm font-bold text-cyan-600 bg-cyan-50 px-2 py-1 rounded">Médio</span>
+                            </label>
+                            <input type="range" min="10" max="100" value="40" id="health-wage-slider" class="w-full">
+                        </div>
+                        <div>
+                            <label class="flex justify-between items-center mb-3">
+                                <span class="text-sm font-bold text-slate-700">Sua Idade (&delta;)</span>
+                                <span id="health-age-val" class="text-sm font-bold text-red-600 bg-red-50 px-2 py-1 rounded">40 anos</span>
+                            </label>
+                            <input type="range" min="20" max="90" step="5" value="40" id="health-age-slider" class="w-full">
+                        </div>
+                        
+                        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm text-center">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Estoque Ótimo (H*)</span>
+                            <div id="health-optimal" class="text-3xl font-extrabold text-cyan-600 mt-2">--</div>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-8 p-8 bg-white">
+                        <div class="h-80 relative">
+                            <canvas id="healthChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PÁGINA: CULTURA -->
+        <section id="page-culture" class="page-section max-w-6xl mx-auto">
+            <header class="mb-10">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-violet-100 text-violet-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">Serviços</span>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">A Doença de Custos</h2>
+                <p class="text-slate-600 max-w-3xl text-lg leading-relaxed">
+                    Setores onde não há ganho de produtividade (como artes e educação) sofrem aumentos de custo constantes apenas para acompanhar os salários da indústria.
+                </p>
+            </header>
+
+            <div class="mb-8 bg-gradient-to-r from-violet-50 to-white border border-violet-100 rounded-2xl p-8 shadow-sm relative overflow-hidden">
+                <div class="relative z-10 grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h3 class="font-bold text-slate-800 mb-3 text-lg">Modelo Baumol & Bowen (1966)</h3>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
+                            $$ \frac{C_{serv}}{C_{manuf}} = e^{(r_{manuf} - r_{serv})t} $$
+                        </div>
+                    </div>
+                    <div class="text-sm text-slate-600 space-y-2">
+                        <ul class="list-disc pl-4 space-y-2 marker:text-violet-500">
+                            <li><b class="font-mono text-slate-900">C_serv / C_manuf</b>: O quanto o serviço ficou mais caro que o bem industrial.</li>
+                            <li><b class="font-mono text-green-600">r_manuf</b>: Produtividade da Indústria (Cresce rápido).</li>
+                            <li><b class="font-mono text-violet-600">r_serv</b>: Produtividade do Serviço (Quase zero).</li>
+                            <li><b class="font-mono text-slate-900">t</b>: Tempo (anos).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-12">
+                    <div class="lg:col-span-4 p-8 bg-slate-50/50 border-r border-slate-100 space-y-8">
+                        <div>
+                            <label class="flex justify-between items-center mb-3">
+                                <span class="text-sm font-bold text-slate-700">Produtividade Indústria</span>
+                                <span id="cult-prod-val" class="text-sm font-bold text-green-600 bg-green-50 px-2 py-1 rounded">2% a.a.</span>
+                            </label>
+                            <input type="range" min="0" max="10" value="2" step="0.5" id="cult-prod-slider" class="w-full">
+                        </div>
+                        <div>
+                            <label class="flex justify-between items-center mb-3">
+                                <span class="text-sm font-bold text-slate-700">Elasticidade Preço (&epsilon;)</span>
+                                <span id="cult-elast-val" class="text-sm font-bold text-violet-600 bg-violet-50 px-2 py-1 rounded">0.5</span>
+                            </label>
+                            <input type="range" min="0.1" max="2.0" step="0.1" value="0.5" id="cult-elast-slider" class="w-full">
+                        </div>
+                        
+                        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm text-center">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Aumento Relativo (50 anos)</span>
+                            <div id="cult-gap" class="text-3xl font-extrabold text-violet-600 mt-2">--</div>
+                            <div id="cult-revenue" class="text-xs font-bold mt-2">--</div>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-8 p-8 bg-white">
+                        <div class="h-80 relative">
+                            <canvas id="cultureChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PÁGINA: IA -->
+        <section id="page-ai" class="page-section max-w-6xl mx-auto">
+            <header class="mb-10">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">Inovação</span>
+                </div>
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">IA e Empregos</h2>
+                <p class="text-slate-600 max-w-3xl text-lg leading-relaxed">
+                    O impacto da IA é um cabo de guerra: o <b>Efeito Deslocamento</b> destrói vagas existentes, enquanto o <b>Efeito Produtividade</b> cria novas tarefas e expande a economia.
+                </p>
+            </header>
+
+            <div class="mb-8 bg-gradient-to-r from-amber-50 to-white border border-amber-100 rounded-2xl p-8 shadow-sm relative overflow-hidden">
+                <div class="relative z-10 grid md:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <h3 class="font-bold text-slate-800 mb-3 text-lg">Modelo Acemoglu & Restrepo</h3>
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
+                            $$ \Delta L = \color{green}{Produtividade} - \color{red}{Deslocamento} $$
+                        </div>
+                    </div>
+                    <div class="text-sm text-slate-600 space-y-2">
+                        <ul class="list-disc pl-4 space-y-2 marker:text-amber-500">
+                            <li><b class="font-mono text-slate-900">&Delta;L</b>: Variação na demanda por trabalho.</li>
+                            <li><b class="font-mono text-red-600">Deslocamento</b>: IA faz o trabalho do humano (reduz L).</li>
+                            <li><b class="font-mono text-green-600">Produtividade</b>: IA barateia produtos, aumenta vendas e cria novas tarefas (aumenta L).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-12">
+                    <div class="lg:col-span-4 p-8 bg-slate-50/50 border-r border-slate-100 space-y-8">
+                        <div>
+                            <label class="flex justify-between items-center mb-3">
+                                <span class="text-sm font-bold text-slate-700">Automação (Substituição)</span>
+                                <span id="ai-auto-val" class="text-sm font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded">Média</span>
+                            </label>
+                            <input type="range" min="0" max="100" value="50" id="ai-auto-slider" class="w-full">
+                        </div>
+                        <div>
+                            <label class="flex justify-between items-center mb-3">
+                                <span class="text-sm font-bold text-slate-700">Ganhos de Produtividade</span>
+                                <span id="ai-prod-val" class="text-sm font-bold text-green-600 bg-green-50 px-2 py-1 rounded">Alto</span>
+                            </label>
+                            <input type="range" min="0" max="100" value="60" id="ai-prod-slider" class="w-full">
+                        </div>
+                        
+                        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm text-center">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Saldo Líquido (20 Anos)</span>
+                            <div id="ai-result" class="text-3xl font-extrabold text-amber-600 mt-2">--</div>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-8 p-8 bg-white">
+                        <div class="h-80 relative">
+                            <canvas id="aiChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- UX MOBILE ---
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const overlay = document.getElementById('menu-overlay');
+            menu.classList.toggle('menu-open');
+            overlay.classList.toggle('hidden');
+        }
+
+        // --- NAVEGAÇÃO ---
+        function router(pageId) {
+            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            
+            const targetPage = document.getElementById(`page-${pageId}`);
+            const targetBtn = document.getElementById(`btn-${pageId}`);
+            
+            if (targetPage) targetPage.classList.add('active');
+            if (targetBtn) targetBtn.classList.add('active');
+
+            // Close mobile menu on navigate
+            const menu = document.getElementById('mobile-menu');
+            const overlay = document.getElementById('menu-overlay');
+            if (menu.classList.contains('menu-open')) {
+                menu.classList.remove('menu-open');
+                overlay.classList.add('hidden');
+            }
+
+            updateSidebarContext(pageId);
+        }
+
+        function updateSidebarContext(pageId) {
+            const container = document.getElementById('sidebar-context');
+            if (pageId === 'violence') {
+                container.innerHTML = `
+                    <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2">Dados Reais (Ipea)</h4>
+                    <p class="text-[11px] text-slate-600 leading-relaxed mb-2">
+                        A violência custa ao Brasil <b>5,9% do PIB</b> (aprox. R$ 595 bilhões/ano), reduzindo investimentos de longo prazo.
+                    </p>
+                    <p class="text-[10px] text-slate-400 italic border-t pt-2 mt-2">Fonte: Atlas da Violência (Ipea/FBSP)</p>
+                `;
+            } else if (pageId === 'education') {
+                container.innerHTML = `
+                    <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2">Ranking Global (OCDE)</h4>
+                    <p class="text-[11px] text-slate-600 leading-relaxed mb-2">
+                        O Brasil tem o maior prêmio salarial entre os países da OCDE: graduados ganham, em média, <b>144% a mais</b> que aqueles com apenas ensino médio.
+                    </p>
+                    <p class="text-[10px] text-slate-400 italic border-t pt-2 mt-2">Fonte: OECD Education at a Glance 2022</p>
+                `;
+            } else if (pageId === 'environment') {
+                container.innerHTML = `
+                    <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2">Custo Social (SCC)</h4>
+                    <p class="text-[11px] text-slate-600 leading-relaxed mb-2">
+                        Estudos recentes estimam que cada tonelada de CO2 causa ~US$ 185 em danos globais futuros.
+                    </p>
+                    <p class="text-[10px] text-slate-400 italic border-t pt-2 mt-2">Fonte: EPA Report 2022</p>
+                `;
+            } else if (pageId === 'health') {
+                container.innerHTML = `
+                    <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2">Demanda por Saúde</h4>
+                    <p class="text-[11px] text-slate-600 leading-relaxed mb-2">
+                        A elasticidade-preço da saúde é baixa (-0.2). Mesmo ficando caro (velhice), as pessoas cortam pouco o gasto.
+                    </p>
+                    <p class="text-[10px] text-slate-400 italic border-t pt-2 mt-2">Fonte: RAND Health Insurance Experiment</p>
+                `;
+            } else if (pageId === 'culture') {
+                container.innerHTML = `
+                    <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2">Inflação de Serviços</h4>
+                    <p class="text-[11px] text-slate-600 leading-relaxed mb-2">
+                        Enquanto bens duráveis caíram de preço real, serviços de educação e artes subiram acima do CPI.
+                    </p>
+                    <p class="text-[10px] text-slate-400 italic border-t pt-2 mt-2">Fonte: Bureau of Labor Statistics (US)</p>
+                `;
+            } else if (pageId === 'ai') {
+                container.innerHTML = `
+                    <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2">O Paradoxo</h4>
+                    <p class="text-[11px] text-slate-600 leading-relaxed mb-2">
+                        Se a IA apenas substitui sem aumentar produtividade ("so-so automation"), os salários caem e a desigualdade sobe.
+                    </p>
+                    <p class="text-[10px] text-slate-400 italic border-t pt-2 mt-2">Fonte: Acemoglu & Restrepo (2019)</p>
+                `;
+            } else {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center italic">Selecione um modelo.</p>`;
+            }
+        }
+
+        // --- CHART CONFIGS (ACCESSIBILITY: DASHED LINES) ---
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#64748b';
+
+        // --- MODELO 1: VIOLÊNCIA ---
+        const ctxViol = document.getElementById('violenceChart').getContext('2d');
+        const chartViol = new Chart(ctxViol, {
+            type: 'line',
+            data: {
+                labels: ['20', '30', '40', '50', '60', '70', '80'],
+                datasets: [
+                    { label: 'Renda Disponível', data: [], borderColor: '#94a3b8', borderDash: [5,5], tension: 0.4, borderWidth: 2, pointRadius: 0 },
+                    { label: 'Consumo Real', data: [], borderColor: '#dc2626', backgroundColor: 'rgba(220, 38, 38, 0.05)', fill: true, tension: 0.4, borderWidth: 3 }
+                ]
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false, 
+                plugins: { legend: { position: 'top', align: 'end' } },
+                scales: { x: { grid: { display: false } }, y: { display: false } }
+            }
+        });
+
+        function updateViolence() {
+            const v = parseInt(document.getElementById('viol-slider').value);
+            const y = parseInt(document.getElementById('viol-income-slider').value);
+            
+            document.getElementById('viol-income-val').innerText = `R$ ${y.toLocaleString('pt-BR')}`;
+            const vLabel = v < 30 ? "Baixo" : (v < 70 ? "Moderado" : "Crítica");
+            document.getElementById('viol-val').innerText = vLabel;
+
+            const impatience = 0.3 + (v / 100) * 0.65; 
+            let incomeData = [], consData = [], totalSavings = 0;
+
+            for(let age=20; age<=80; age+=5) {
+                let inc = y * (-0.0008 * Math.pow(age - 50, 2) + 1);
+                let cons = (inc * impatience) + (inc * 0.85 * (1-impatience)); 
+                if (cons > inc) cons = inc; 
+                incomeData.push(inc);
+                consData.push(cons);
+                totalSavings += (inc - cons);
+            }
+
+            const welfareLoss = (v/100) * 5.9; // 5.9% of GDP is the reference
+            document.getElementById('viol-welfare').innerText = `-${welfareLoss.toFixed(1)}%`;
+            
+            const savingsEl = document.getElementById('viol-savings');
+            if(totalSavings > 1000) {
+                savingsEl.innerText = "Positiva";
+                savingsEl.className = "font-bold text-green-600";
+            } else {
+                savingsEl.innerText = "Inexistente";
+                savingsEl.className = "font-bold text-red-600";
+            }
+
+            chartViol.data.datasets[0].data = incomeData;
+            chartViol.data.datasets[1].data = consData;
+            chartViol.update();
+        }
+
+        // --- MODELO 2: EDUCAÇÃO ---
+        const ctxEdu = document.getElementById('educationChart').getContext('2d');
+        const chartEdu = new Chart(ctxEdu, {
+            type: 'line',
+            data: {
+                labels: ['18', '25', '30', '35', '40', '45', '50', '55', '60', '65'],
+                datasets: [{ 
+                    label: 'Salário Estimado', 
+                    data: [], 
+                    borderColor: '#16a34a', 
+                    backgroundColor: 'rgba(22, 163, 74, 0.05)', 
+                    fill: true, tension: 0.4, borderWidth: 3 
+                }]
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
+            }
+        });
+
+        function updateEducation() {
+            const S = parseInt(document.getElementById('edu-s-slider').value); 
+            const rho = parseInt(document.getElementById('edu-rho-slider').value) / 100; 
+            const w0 = 1200; 
+
+            document.getElementById('edu-s-val').innerText = `${S} anos`;
+            document.getElementById('edu-rho-val').innerText = `${(rho*100).toFixed(0)}%`;
+
+            let salaryData = [], ages = [18, 25, 30, 35, 40, 45, 50, 55, 60, 65], peakSalary = 0;
+
+            ages.forEach(age => {
+                let X = Math.max(0, age - S - 6);
+                let logW = Math.log(w0) + (rho * S) + (0.05 * X) - (0.0008 * Math.pow(X, 2));
+                let w = Math.exp(logW);
+                if (age < (S + 6)) w = 0;
+                if (age === 50) peakSalary = w;
+                salaryData.push(w);
+            });
+
+            document.getElementById('edu-peak-salary').innerText = `R$ ${Math.round(peakSalary).toLocaleString('pt-BR')}`;
+            chartEdu.data.datasets[0].data = salaryData;
+            chartEdu.update();
+        }
+
+        // --- MODELO 3: MEIO AMBIENTE ---
+        const ctxEnv = document.getElementById('envChart').getContext('2d');
+        const chartEnv = new Chart(ctxEnv, {
+            type: 'line',
+            data: {
+                labels: ['0', '20', '40', '60', '80', '100', '120'],
+                datasets: [
+                    { label: 'Custo Social (Meta)', data: [], borderColor: '#ef4444', borderWidth: 2, borderDash: [5,5] }, // Dashed for Target
+                    { label: 'Custo Privado + Taxa', data: [], borderColor: '#10b981', borderWidth: 3 },
+                    { label: 'Demanda', data: [], borderColor: '#3b82f6', borderWidth: 2 }
+                ]
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false,
+                scales: { y: { display: false }, x: { grid: { display: false } } }
+            }
+        });
+
+        function updateEnvironment() {
+            const t = parseInt(document.getElementById('env-tax-slider').value);
+            const damage = parseInt(document.getElementById('env-damage-slider').value);
+            
+            document.getElementById('env-tax-val').innerText = `R$ ${t}`;
+            document.getElementById('env-damage-val').innerText = `R$ ${damage}`;
+
+            let demandData = [], socialCostData = [], taxedCostData = [];
+            
+            [0, 20, 40, 60, 80, 100, 120].forEach(q => {
+                demandData.push(150 - q);
+                socialCostData.push(10 + q + damage);
+                taxedCostData.push(10 + q + t);
+            });
+
+            let q_eq = Math.max(0, (140 - t) / 2);
+            let q_opt = Math.max(0, (140 - damage) / 2);
+            let diff = Math.abs(q_eq - q_opt);
+
+            const statusEl = document.getElementById('env-status');
+            const descEl = document.getElementById('env-status-desc');
+
+            if (diff < 2) {
+                statusEl.innerText = "ÓTIMO SOCIAL";
+                statusEl.className = "text-lg font-bold text-emerald-600";
+                descEl.innerText = "Imposto corrigiu a falha perfeitamente.";
+            } else if (q_eq > q_opt) {
+                statusEl.innerText = "Poluição Excessiva";
+                statusEl.className = "text-lg font-bold text-amber-500";
+                descEl.innerText = "O imposto está baixo demais.";
+            } else {
+                statusEl.innerText = "Produção Sufocada";
+                statusEl.className = "text-lg font-bold text-blue-600";
+                descEl.innerText = "O imposto está alto demais.";
+            }
+
+            chartEnv.data.datasets[0].data = socialCostData;
+            chartEnv.data.datasets[1].data = taxedCostData;
+            chartEnv.data.datasets[2].data = demandData;
+            chartEnv.update();
+        }
+
+        // --- MODELO 4: SAÚDE ---
+        const ctxHealth = document.getElementById('healthChart').getContext('2d');
+        const chartHealth = new Chart(ctxHealth, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 100}, (_, i) => i),
+                datasets: [
+                    { label: 'Retorno (MEC)', data: [], borderColor: '#06b6d4', borderWidth: 3 },
+                    { label: 'Custo (Juros+Depr)', data: [], borderColor: '#ef4444', borderWidth: 2, borderDash: [5,5] }
+                ]
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false,
+                scales: { x: { display: false }, y: { display: false } }
+            }
+        });
+
+        function updateHealth() {
+            const wage = parseInt(document.getElementById('health-wage-slider').value);
+            const age = parseInt(document.getElementById('health-age-slider').value);
+            
+            document.getElementById('health-wage-val').innerText = wage > 70 ? "Alto" : (wage > 30 ? "Médio" : "Baixo");
+            document.getElementById('health-age-val').innerText = `${age} anos`;
+
+            const userCost = 5 + (1 + Math.pow((age - 20) / 70, 2) * 15);
+            let mecData = [], costData = [], optimalHealth = 0, minDiff = 999;
+
+            for(let h = 1; h <= 100; h++) {
+                let mec = (wage * 15) * Math.pow(h, -0.6); 
+                if(mec > 100) mec = 100;
+                mecData.push(mec);
+                costData.push(userCost);
+                
+                if (Math.abs(mec - userCost) < minDiff) {
+                    minDiff = Math.abs(mec - userCost);
+                    optimalHealth = h;
+                }
+            }
+
+            document.getElementById('health-optimal').innerText = optimalHealth;
+            chartHealth.data.datasets[0].data = mecData;
+            chartHealth.data.datasets[1].data = costData;
+            chartHealth.update();
+        }
+
+        // --- MODELO 5: CULTURA ---
+        const ctxCulture = document.getElementById('cultureChart').getContext('2d');
+        const chartCulture = new Chart(ctxCulture, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 50}, (_, i) => i),
+                datasets: [
+                    { label: 'Custo Relativo', data: [], borderColor: '#8b5cf6', borderWidth: 3, yAxisID: 'y' },
+                    { label: 'Demanda', data: [], borderColor: '#94a3b8', borderWidth: 2, borderDash: [5,5], yAxisID: 'y1' }
+                ]
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false,
+                scales: { 
+                    y: { display: false }, 
+                    y1: { display: false, position: 'right' },
+                    x: { display: false }
+                }
+            }
+        });
+
+        function updateCulture() {
+            const prod = parseFloat(document.getElementById('cult-prod-slider').value) / 100;
+            const elast = parseFloat(document.getElementById('cult-elast-slider').value);
+            
+            document.getElementById('cult-prod-val').innerText = `${(prod*100).toFixed(1)}%`;
+            document.getElementById('cult-elast-val').innerText = elast.toFixed(1);
+
+            let gapData = [], demData = [];
+            
+            for(let t=0; t<50; t++) {
+                let gap = Math.pow(1+prod, t);
+                gapData.push(gap);
+                demData.push(100 * Math.pow(gap, -elast));
+            }
+
+            const finalGap = gapData[49];
+            const finalDem = demData[49];
+            document.getElementById('cult-gap').innerText = `${finalGap.toFixed(1)}x`;
+            
+            const revenue = finalGap * finalDem;
+            const revEl = document.getElementById('cult-revenue');
+            
+            if (revenue > 120) {
+                revEl.innerText = "Receita Crescente (Bem de Luxo)";
+                revEl.className = "text-xs font-bold text-green-600 mt-2";
+            } else if (revenue < 80) {
+                revEl.innerText = "Colapso de Receita (Crise)";
+                revEl.className = "text-xs font-bold text-red-600 mt-2";
+            } else {
+                revEl.innerText = "Receita Estável";
+                revEl.className = "text-xs font-bold text-slate-500 mt-2";
+            }
+
+            chartCulture.data.datasets[0].data = gapData;
+            chartCulture.data.datasets[1].data = demData;
+            chartCulture.update();
+        }
+
+        // --- MODELO 6: IA ---
+        const ctxAI = document.getElementById('aiChart').getContext('2d');
+        const chartAI = new Chart(ctxAI, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 21}, (_, i) => i),
+                datasets: [
+                    { label: 'Sem IA', data: [], borderColor: '#94a3b8', borderDash: [5,5], borderWidth: 2 },
+                    { label: 'Com IA', data: [], borderColor: '#f59e0b', borderWidth: 3, backgroundColor: 'rgba(245, 158, 11, 0.1)', fill: true }
+                ]
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false,
+                scales: { y: { display: false }, x: { display: false } }
+            }
+        });
+
+        function updateAI() {
+            const auto = parseInt(document.getElementById('ai-auto-slider').value);
+            const prod = parseInt(document.getElementById('ai-prod-slider').value);
+            
+            document.getElementById('ai-auto-val').innerText = auto > 60 ? "Alta" : "Baixa";
+            document.getElementById('ai-prod-val').innerText = prod > 60 ? "Alto" : "Baixo";
+
+            let base = [], ai = [], curB = 100, curA = 100;
+            const growth = 0.015;
+            const disp = (auto/100)*0.025;
+            const gain = (prod/100)*0.035;
+
+            for(let t=0; t<=20; t++) {
+                base.push(curB);
+                ai.push(curA);
+                curB *= (1+growth);
+                curA *= (1 + growth - disp + gain);
+            }
+
+            const diff = ai[20] - base[20];
+            const resEl = document.getElementById('ai-result');
+            
+            if(diff > 2) {
+                resEl.innerText = `+${diff.toFixed(1)}%`;
+                resEl.className = "text-3xl font-extrabold text-green-600 mt-2";
+            } else if (diff < -2) {
+                resEl.innerText = `${diff.toFixed(1)}%`;
+                resEl.className = "text-3xl font-extrabold text-red-600 mt-2";
+            } else {
+                resEl.innerText = "Neutro";
+                resEl.className = "text-3xl font-extrabold text-slate-500 mt-2";
+            }
+
+            chartAI.data.datasets[0].data = base;
+            chartAI.data.datasets[1].data = ai;
+            chartAI.update();
+        }
+
+        // EVENT LISTENERS
+        document.getElementById('viol-slider').oninput = updateViolence;
+        document.getElementById('viol-income-slider').oninput = updateViolence;
+        
+        document.getElementById('edu-s-slider').oninput = updateEducation;
+        document.getElementById('edu-rho-slider').oninput = updateEducation;
+        
+        document.getElementById('env-tax-slider').oninput = updateEnvironment;
+        document.getElementById('env-damage-slider').oninput = updateEnvironment;
+        
+        document.getElementById('health-wage-slider').oninput = updateHealth;
+        document.getElementById('health-age-slider').oninput = updateHealth;
+        
+        document.getElementById('cult-prod-slider').oninput = updateCulture;
+        document.getElementById('cult-elast-slider').oninput = updateCulture;
+        
+        document.getElementById('ai-auto-slider').oninput = updateAI;
+        document.getElementById('ai-prod-slider').oninput = updateAI;
+
+        // INIT
+        window.addEventListener('load', () => {
+            updateViolence();
+            updateEducation();
+            updateEnvironment();
+            updateHealth();
+            updateCulture();
+            updateAI();
+            // Load correct context for initial page
+            updateSidebarContext('home');
+        });
+
+    </script>
+</body>
+</html>
